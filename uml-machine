@@ -570,14 +570,15 @@ meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
-meta::function('run', <<'__b0335d77edec5914088da3f97fd90ed4');
+meta::function('run', <<'__fbe8360f42adf0143c2e171c27a9b824');
 my $prefix      = prefix();
 my $memory      = memory();
+my $name        = name();
 my $ip_address  = &{'ip-address'}();
 my $mac_address = &{'mac-address'}();
 
-system("linux mem=$memory eth0=tuntap,tap0,$mac_address,$ip_address ubd0=$prefix/image");
-__b0335d77edec5914088da3f97fd90ed4
+system("linux umid=$name mem=$memory eth0=tuntap,tap0,$mac_address,$ip_address ubd0=$prefix/image xterm=terminator,-T,-x");
+__fbe8360f42adf0143c2e171c27a9b824
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
