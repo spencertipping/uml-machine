@@ -603,6 +603,12 @@ end
 __dc4f50c9defd7098125b96d1d25d576f
 meta::function('prefix', '&{\'root-directory\'}() . \'/\' . name() . \'-\' . identity();');
 meta::function('reload', 'execute($_) for grep ! /^bootstrap::/, keys %data;');
+meta::function('rescue', <<'__c852eae080f37daac2758e0c528b8ba9');
+my $prefix = prefix();
+&{'mount-image'}();
+bash("cd $prefix/mnt && sudo bash");
+&{'umount-image'}();
+__c852eae080f37daac2758e0c528b8ba9
 meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
