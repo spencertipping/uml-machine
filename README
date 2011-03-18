@@ -1,0 +1,13 @@
+I'm not responsible for what happens if you use this.
+
+But if you want to try:
+
+$ ./uml-machine child my-arch-instance
+$ ./my-arch-instance check
+(Follow instructions to make sure the host is setup)
+$ ./my-arch-instance create-image
+$ ./my-arch-instance arch-init-image
+$ ./my-arch-instance run
+
+Alternatives to Arch are Debian and Gentoo, specified by using debian-init-image
+and gentoo-init-image, respectively.
