@@ -361,7 +361,7 @@ my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
 join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
-meta::function('debian-init-image', <<'__34a37a3a0efafb505b92c4ecef770aca');
+meta::function('debian-init-image', <<'__3245321b31458515f7f1b962fa2d252c');
 my $prefix  = prefix();
 my $droot   = &{'root-directory'}() . '/cache-debian';
 my $version = 'squeeze';
@@ -383,7 +383,7 @@ bash(<<end);
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $prefix/mnt/etc/fstab
   sudo cp /etc/apt/sources.list $prefix/mnt/etc/apt/
   echo $name | sudo tee $prefix/mnt/etc/hostname
-  sudo sed 's/^\\s*//' <<EOF | tee -a $prefix/mnt/etc/network/interfaces
+  sudo sed 's/^\\s*//' > $prefix/mnt/etc/network/interfaces <<EOF
     auto lo
     iface lo inet loopback
     auto eth0
@@ -395,7 +395,7 @@ bash(<<end);
 EOF
 end
 &{'umount-image'}();
-__34a37a3a0efafb505b92c4ecef770aca
+__3245321b31458515f7f1b962fa2d252c
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
 meta::function('edit', <<'__d4a523db46b488b20f444e07d28fea33');
 my ($name, %options) = @_;
