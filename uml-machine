@@ -430,7 +430,7 @@ my $name = pop @_;
 file::write($name, join "\n", retrieve(@_));
 __388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('gentoo-init-image', <<'__9477c29bf8fe9684aa42008c449d6ff1');
+meta::function('gentoo-init-image', <<'__8f329f487b3d6eb760d2320c8cb0de70');
 my $prefix        = prefix();
 my $root          = &{'root-directory'}();
 my $stage3        = 'ftp://gentoo.mirrors.pair.com/releases/x86/current-stage3/stage3-i686-*.tar.bz2';
@@ -464,11 +464,12 @@ bash(<<end);
     /dev/ubd0 / ext2 defaults 0 0
     proc /proc proc defaults 0 0
 EOF
+  sudo chroot $prefix/mnt passwd root
 end
 
 &{'postinstall-networking'}();
 &{'umount-image'}();
-__9477c29bf8fe9684aa42008c449d6ff1
+__8f329f487b3d6eb760d2320c8cb0de70
 meta::function('grep', <<'__a32de7e18e12734fff127c8cb904cf53');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
