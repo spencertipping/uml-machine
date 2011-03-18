@@ -257,7 +257,7 @@ meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
 __82708b00ecb7499701a9f4c6c5fe9839
-meta::function('arch-init-image', <<'__e0ca0b35249a5e682fee329efa94f527');
+meta::function('arch-init-image', <<'__145931a02846b15d3d47c1df97de78a2');
 my $prefix = prefix();
 my $aroot  = &{'root-directory'}() . '/cache-arch';
 my $ensure = sub {
@@ -290,7 +290,7 @@ bash(<<end);
   cd $aroot/usr/bin
   mkdir -p $aroot/var/lib/pacman-$identity
   $pacman_prefix ./pacman -Sy $pacman_opts
-  $pacman_prefix ./pacman -S base -r $prefix/mnt $pacman_opts
+  $pacman_prefix ./pacman -S base -r $prefix/mnt --noconfirm $pacman_opts
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $aroot/etc/fstab
   sudo rm -rf $prefix/mnt/var/lib/pacman
   sudo mv $aroot/var/lib/pacman-$identity $prefix/mnt/var/lib/pacman
@@ -298,7 +298,7 @@ end
 
 &{'postinstall-networking'}();
 &{'umount-image'}();
-__e0ca0b35249a5e682fee329efa94f527
+__145931a02846b15d3d47c1df97de78a2
 meta::function('bash', <<'__8d23e6ddda25160e11315345a3282b16');
 with_exported('id::' . join("\n", @_), sub {
   system('/bin/bash', $_[0]);
@@ -616,7 +616,7 @@ meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
-meta::function('run', <<'__fd910c3afe075654c0dc43be5996cf87');
+meta::function('run', <<'__2b4ad6831912d6c308568c3893135ce6');
 my $prefix      = prefix();
 my $memory      = memory();
 my $name        = name();
@@ -624,7 +624,6 @@ my $ip_address  = &{'ip-address'}();
 my $mac_address = &{'mac-address'}();
 
 my $network_options = "eth0=tuntap,tap0";
-#my $network_options = 'eth0=mcast';
 
 my @silent_consoles = map "con$_", 2 .. 16;
 my @active_consoles = 'con1';
@@ -633,7 +632,7 @@ my $console_options = join ' ', map("$_=pts", @silent_consoles),
                                 map("$_=xterm", @active_consoles);
 
 system("linux $console_options umid=$name mem=$memory $network_options ubd0=$prefix/image xterm=terminator,-T,-x");
-__fd910c3afe075654c0dc43be5996cf87
+__2b4ad6831912d6c308568c3893135ce6
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
