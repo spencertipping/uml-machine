@@ -4,10 +4,18 @@ But if you want to try:
 
 $ ./uml-machine child my-arch-instance
 $ ./my-arch-instance check
-(Follow instructions to make sure the host is setup)
+(Follow instructions to make sure the host is ready)
 $ ./my-arch-instance create-image
 $ ./my-arch-instance arch-init-image
 $ ./my-arch-instance run
 
+$ ./my-arch-instance rescue     # bash prompt inside mounted FS
+$ ./my-arch-instance ip-address
+$ ./my-arch-instance prefix     # all files live in here
+
 Alternatives to Arch are Debian and Gentoo, specified by using debian-init-image
 and gentoo-init-image, respectively.
+
+Once your instance is running, a command called /sbin/netup should get networking
+going between the host and other UML instances. It also initializes the routing
+table so that your instance can connect to the Internet.
