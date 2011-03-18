@@ -257,7 +257,7 @@ meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
 __82708b00ecb7499701a9f4c6c5fe9839
-meta::function('arch-init-image', <<'__b3403a60b68e2751bbcb1e961839877a');
+meta::function('arch-init-image', <<'__1b054bb66dfefaf3a467fa116e4ea5ee');
 my $prefix = prefix();
 my $aroot  = &{'root-directory'}() . '/cache-arch';
 my $ensure = sub {
@@ -271,21 +271,28 @@ my $ensure = sub {
 &$ensure('openssl.pkg.tar.gz',       'http://www.archlinux.org/packages/core/i686/openssl/download/');
 &$ensure('pacman-mirror.pkg.tar.gz', 'http://www.archlinux.org/packages/core/any/pacman-mirrorlist/download/');
 
-bash("cd $aroot && tar -xvzf $_") for <$aroot/*.pkg.tar.gz>;
+bash("cd $aroot && tar -xzf $_") for <$aroot/*.pkg.tar.gz>;
 
 my $pacman_conf = file::read("$aroot/etc/pacman.conf");
 $pacman_conf =~ s/\/etc/$aroot\/etc/g;
 file::write("$aroot/etc/pacman.conf", $pacman_conf);
 
+my $pacman_mirrorlist = file::read("$aroot/etc/pacman.d/mirrorlist");
+$pacman_mirrorlist =~ s/^#(.*ftp\.archlinux\.org)/\1/mg;
+file::write("$aroot/etc/pacman.d/mirrorlist", $pacman_mirrorlist);
+
+my $pacman_opts   = "--config $aroot/etc/pacman.conf -b $aroot/var/lib/pacman --cachedir $aroot/var/cache/pacman/pkg --logfile $aroot/var/log/pacman.log";
+my $pacman_prefix = "sudo LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/lib:/usr/lib:$aroot/lib:$aroot/usr/lib";
+
 &{'mount-image'}();
 bash(<<end);
   cd $aroot/usr/bin
-  export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/lib:/usr/lib:$aroot/lib:$aroot/usr/lib
-  sudo ./pacman -S base -r $prefix/mnt --config $aroot/etc/pacman.conf -b $aroot/var/lib/pacman --cachedir $aroot/var/cache/pacman/pkg --logfile $aroot/var/log/pacman.log
+  $pacman_prefix ./pacman -Sy $pacman_opts
+  $pacman_prefix ./pacman -S base -r $prefix/mnt $pacman_opts
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $aroot/etc/fstab
 end
 &{'umount-image'}();
-__b3403a60b68e2751bbcb1e961839877a
+__1b054bb66dfefaf3a467fa116e4ea5ee
 meta::function('bash', <<'__8d23e6ddda25160e11315345a3282b16');
 with_exported('id::' . join("\n", @_), sub {
   system('/bin/bash', $_[0]);
@@ -339,17 +346,16 @@ return edit($name) if exists $data{$name};
 associate($name, defined $value ? $value : '');
 edit($name) unless defined $value;
 __7ca9912feb8e43dc446bab9a0c79821a
-meta::function('create-image', <<'__c60375b9aa16b9171e4fbd42d4ddd5aa');
-my $fs     = $_[0] || 'ext2';
-my $mb     = ($_[1] || 2) * 1024;
+meta::function('create-image', <<'__bce1b7b74ed7a53eaa6ffb0987960fe2');
+my $mb     = ($_[0] || 2) * 1024;
 my $prefix = prefix();
 
 bash(<<end);
   mkdir -p $prefix
   dd if=/dev/zero of=$prefix/image bs=1M count=$mb
-  mkfs.$fs -F $prefix/image
+  mkfs.ext3 -F $prefix/image
 end
-__c60375b9aa16b9171e4fbd42d4ddd5aa
+__bce1b7b74ed7a53eaa6ffb0987960fe2
 meta::function('current-state', <<'__d83ae43551c0f58d1d0ce576402a315a');
 my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
@@ -377,7 +383,7 @@ my $name = pop @_;
 file::write($name, join "\n", retrieve(@_));
 __388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('gentoo-init-image', <<'__f25610798069bf31f00a389768c6e3d8');
+meta::function('gentoo-init-image', <<'__aa74e871afbb7133d74b8341ba697780');
 my $prefix        = prefix();
 my $root          = &{'root-directory'}();
 my $stage3        = 'ftp://distfiles.gentoo.org/pub/gentoo/releases/x86/current-stage3/stage3-i686-*.tar.bz2';
@@ -399,12 +405,12 @@ end
 &{'mount-image'}();
 bash(<<end);
   cd $prefix/mnt
-  sudo tar -xvjf $local_stage3
+  sudo tar -xjf $local_stage3
   cd usr
-  sudo tar -xvjf $local_portage
+  sudo tar -xjf $local_portage
 end
 &{'umount-image'}();
-__f25610798069bf31f00a389768c6e3d8
+__aa74e871afbb7133d74b8341ba697780
 meta::function('grep', <<'__a32de7e18e12734fff127c8cb904cf53');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
