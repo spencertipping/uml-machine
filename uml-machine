@@ -305,9 +305,11 @@ meta::function('cc', <<'__5c64e1adc128113e1b409e0fbcbe29a2');
 # Stashes a quick one-line continuation. (Used to remind me what I was doing.)
 @_ ? associate('data::current-continuation', join(' ', @_)) : retrieve('data::current-continuation');
 __5c64e1adc128113e1b409e0fbcbe29a2
-meta::function('check', <<'__e47ecc234c8c3b60597d2bfd8bac1616');
+meta::function('check', <<'__4e69d775ea41c8873034e736d9426d60');
 my $prefix = prefix();
 my $ifconfig_output = join "\n", qx/ifconfig -a/;
+
+qx/id/ =~ /uml-net/ or return terminal::info('you need to be a member of the uml-net group');
 
 qx/which linux/ or return terminal::info('UML is not in your $PATH; install user-mode linux');
 qx/which wget/  or terminal::info('wget is not in your $PATH; install wget to initialize images');
@@ -320,7 +322,7 @@ $ifconfig_output =~ /10\.0\.0\.1/ or return terminal::info('tap0 is not configur
 terminal::info('IP address is ' . &{'ip-address'}(),
                'MAC address is ' . &{'mac-address'}(),
                'image file at ' . prefix() . '/image');
-__e47ecc234c8c3b60597d2bfd8bac1616
+__4e69d775ea41c8873034e736d9426d60
 meta::function('child', <<'__3948f6702c460c73411bb96c979f413e');
 my ($child_name) = @_;
 clone($child_name);
