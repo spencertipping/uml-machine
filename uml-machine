@@ -257,20 +257,20 @@ meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
 __82708b00ecb7499701a9f4c6c5fe9839
-meta::function('arch-init-image', <<'__7f3a42fed7e000641d325dc122d864cd');
-my $prefix = prefix;
+meta::function('arch-init-image', <<'__63f08a8ea52e55ae652058922b956fdb');
+my $prefix = prefix();
 my $aroot  = &{'root-directory'}() . '/cache-arch';
 my $ensure = sub {
   my ($name, $url) = @_;
   bash("mkdir -p $aroot");
-  -e glob "$aroot/$name" or bash("cd $aroot && wget $url");
+  -e glob "$aroot/$name" or bash("cd $aroot && wget -O $aroot/$name $url");
   -e glob "$aroot/$name" or die "failed to retrieve $name"};
 
-&$ensure('pacman-3*.pkg.tar.gz',      'http://www.archlinux.org/packages/core/i686/pacman/download/');
-&$ensure('libarchive*.pkg.tar.gz',    'http://www.archlinux.org/packages/core/i686/libarchive/download/');
-&$ensure('libfetch*.pkg.tar.gz',      'http://www.archlinux.org/packages/core/i686/libfetch/download/');
-&$ensure('openssl*.pkg.tar.gz',       'http://www.archlinux.org/packages/core/i686/openssl/download/');
-&$ensure('pacman-mirror*.pkg.tar.gz', 'http://www.archlinux.org/packages/core/any/pacman-mirrorlist/download/');
+&$ensure('pacman.pkg.tar.gz',        'http://www.archlinux.org/packages/core/i686/pacman/download/');
+&$ensure('libarchive.pkg.tar.gz',    'http://www.archlinux.org/packages/core/i686/libarchive/download/');
+&$ensure('libfetch.pkg.tar.gz',      'http://www.archlinux.org/packages/core/i686/libfetch/download/');
+&$ensure('openssl.pkg.tar.gz',       'http://www.archlinux.org/packages/core/i686/openssl/download/');
+&$ensure('pacman-mirror.pkg.tar.gz', 'http://www.archlinux.org/packages/core/any/pacman-mirrorlist/download/');
 
 bash("cd $aroot && tar -xvzf $_") for <$aroot/*.pkg.tar.gz>;
 
@@ -286,7 +286,7 @@ bash(<<end);
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $aroot/etc/fstab
 end
 &{'umount-image'}();
-__7f3a42fed7e000641d325dc122d864cd
+__63f08a8ea52e55ae652058922b956fdb
 meta::function('bash', <<'__8d23e6ddda25160e11315345a3282b16');
 with_exported('id::' . join("\n", @_), sub {
   system('/bin/bash', $_[0]);
@@ -297,8 +297,8 @@ meta::function('cc', <<'__5c64e1adc128113e1b409e0fbcbe29a2');
 # Stashes a quick one-line continuation. (Used to remind me what I was doing.)
 @_ ? associate('data::current-continuation', join(' ', @_)) : retrieve('data::current-continuation');
 __5c64e1adc128113e1b409e0fbcbe29a2
-meta::function('check', <<'__b8c1353b22240450c8f2755ee9aa871a');
-my $prefix = prefix;
+meta::function('check', <<'__fc697d5a7d384d3c15ae16fb452e936f');
+my $prefix = prefix();
 my $ifconfig_output = join "\n", qx/ifconfig -a/;
 
 qx/which linux/ or return terminal::info('UML is not in your $PATH; install user-mode linux');
@@ -309,7 +309,7 @@ $ifconfig_output =~ /10\.0\.0\.1/ or return terminal::info('tap0 is not configur
 
 -e "$prefix/image"       or return terminal::info('no image file; run create-image');
 -e "$prefix/initialized" or return terminal::info('image file is not initialized; run an init-image function');
-__b8c1353b22240450c8f2755ee9aa871a
+__fc697d5a7d384d3c15ae16fb452e936f
 meta::function('child', <<'__3948f6702c460c73411bb96c979f413e');
 my ($child_name) = @_;
 clone($child_name);
@@ -337,17 +337,17 @@ return edit($name) if exists $data{$name};
 associate($name, defined $value ? $value : '');
 edit($name) unless defined $value;
 __7ca9912feb8e43dc446bab9a0c79821a
-meta::function('create-image', <<'__6043620528bb05360589d41560c21bca');
+meta::function('create-image', <<'__c60375b9aa16b9171e4fbd42d4ddd5aa');
 my $fs     = $_[0] || 'ext2';
 my $mb     = ($_[1] || 2) * 1024;
-my $prefix = prefix;
+my $prefix = prefix();
 
 bash(<<end);
   mkdir -p $prefix
   dd if=/dev/zero of=$prefix/image bs=1M count=$mb
   mkfs.$fs -F $prefix/image
 end
-__6043620528bb05360589d41560c21bca
+__c60375b9aa16b9171e4fbd42d4ddd5aa
 meta::function('current-state', <<'__d83ae43551c0f58d1d0ce576402a315a');
 my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
@@ -500,14 +500,14 @@ my $digits = substr identity(), 0, 12;
 $digits =~ s/(..)/:\1/g;
 substr $digits, 1;
 __482ab782f4c09d8d4cd00a8dcae1c534
-meta::function('mount-image', <<'__f8c97f1b49f20c2d65ecb433c9a222ac');
-my $prefix = prefix;
+meta::function('mount-image', <<'__9eaadc45e8c9509d6387433aa9ad7d20');
+my $prefix = prefix();
 my $username = qx/whoami/;
 bash(<<end);
   mkdir -p $prefix/mnt
   sudo mount -o loop $prefix/image $prefix/mnt
 end
-__f8c97f1b49f20c2d65ecb433c9a222ac
+__9eaadc45e8c9509d6387433aa9ad7d20
 meta::function('mv', <<'__52e95180e3c7019116bd798e0da0fdda');
 my ($from, $to) = @_;
 die "'$from' does not exist" unless exists $data{$from};
@@ -530,14 +530,14 @@ meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
-meta::function('run', <<'__87ae319cd76a61b843e118d3736d92af');
-my $prefix      = prefix;
+meta::function('run', <<'__b0335d77edec5914088da3f97fd90ed4');
+my $prefix      = prefix();
 my $memory      = memory();
 my $ip_address  = &{'ip-address'}();
 my $mac_address = &{'mac-address'}();
 
 system("linux mem=$memory eth0=tuntap,tap0,$mac_address,$ip_address ubd0=$prefix/image");
-__87ae319cd76a61b843e118d3736d92af
+__b0335d77edec5914088da3f97fd90ed4
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
@@ -622,12 +622,12 @@ $hash = fast_hash("$data{$_}|$hash") for @keys;
 $hash;
 __119111f84c3e32a5536838ac84bc6f10
 meta::function('touch', 'associate($_, \'\') for @_;');
-meta::function('umount-image', <<'__f8396448514d8a7171cb751f44ed9df3');
-my $prefix = prefix;
+meta::function('umount-image', <<'__53a3fd27a873f0f89e501c345d405cbe');
+my $prefix = prefix();
 bash(<<end);
   sudo umount $prefix/mnt
 end
-__f8396448514d8a7171cb751f44ed9df3
+__53a3fd27a873f0f89e501c345d405cbe
 meta::function('unlock', 'chmod_self(sub {$_[0] | 0200});');
 meta::function('update', '&{\'update-from\'}(@_, grep s/^parent:://o, sort keys %data);');
 meta::function('update-from', <<'__4bb87dcea3d13203b15070a4a44389f8');
