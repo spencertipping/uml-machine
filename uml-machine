@@ -361,7 +361,7 @@ my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
 join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
-meta::function('debian-init-image', <<'__713d7ba8d277bbb09640f79919196977');
+meta::function('debian-init-image', <<'__34a37a3a0efafb505b92c4ecef770aca');
 my $prefix  = prefix();
 my $droot   = &{'root-directory'}() . '/cache-debian';
 my $version = 'squeeze';
@@ -369,7 +369,7 @@ my $version = 'squeeze';
 bash("mkdir -p $droot");
 -e "$droot/basedebs.tar" or bash(<<end);
   cd $droot
-  wget --passive-ftp ftp://ftp.debian.org/debian/dists/squeeeze/main/disks-i386/base-images-current/basedebs.tar
+  sudo debootstrap --make-tarball $droot/basedebs.tar $version $prefix/mnt
 end
 
 my $ip_address = &{'ip-address'}();
@@ -395,7 +395,7 @@ bash(<<end);
 EOF
 end
 &{'umount-image'}();
-__713d7ba8d277bbb09640f79919196977
+__34a37a3a0efafb505b92c4ecef770aca
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
 meta::function('edit', <<'__d4a523db46b488b20f444e07d28fea33');
 my ($name, %options) = @_;
@@ -570,15 +570,16 @@ meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
-meta::function('run', <<'__fbe8360f42adf0143c2e171c27a9b824');
+meta::function('run', <<'__ef47896eb8c58aeccb538574cc57cf76');
 my $prefix      = prefix();
 my $memory      = memory();
 my $name        = name();
 my $ip_address  = &{'ip-address'}();
 my $mac_address = &{'mac-address'}();
 
+system("x-terminal-emulator -x 'uml_mconsole $name' &");
 system("linux umid=$name mem=$memory eth0=tuntap,tap0,$mac_address,$ip_address ubd0=$prefix/image xterm=terminator,-T,-x");
-__fbe8360f42adf0143c2e171c27a9b824
+__ef47896eb8c58aeccb538574cc57cf76
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
