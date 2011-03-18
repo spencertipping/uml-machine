@@ -251,20 +251,19 @@ THE SOFTWARE.
 __3c6177256de0fddb721f534c3ad8c0ee
 meta::data('memory', '128M');
 meta::data('permanent-identity', '83ab4e1c105b2b79ea4d0b7b6ff0d2f1');
-meta::data('root-directory', '~/images');
+meta::data('root-directory', '/home/spencertipping/images');
 meta::data('watching', '1');
 meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
 __82708b00ecb7499701a9f4c6c5fe9839
-meta::function('arch-init-image', <<'__63f08a8ea52e55ae652058922b956fdb');
+meta::function('arch-init-image', <<'__b3403a60b68e2751bbcb1e961839877a');
 my $prefix = prefix();
 my $aroot  = &{'root-directory'}() . '/cache-arch';
 my $ensure = sub {
   my ($name, $url) = @_;
   bash("mkdir -p $aroot");
-  -e glob "$aroot/$name" or bash("cd $aroot && wget -O $aroot/$name $url");
-  -e glob "$aroot/$name" or die "failed to retrieve $name"};
+  -e "$aroot/$name" or bash("cd $aroot && wget -O $aroot/$name $url")};
 
 &$ensure('pacman.pkg.tar.gz',        'http://www.archlinux.org/packages/core/i686/pacman/download/');
 &$ensure('libarchive.pkg.tar.gz',    'http://www.archlinux.org/packages/core/i686/libarchive/download/');
@@ -286,7 +285,7 @@ bash(<<end);
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $aroot/etc/fstab
 end
 &{'umount-image'}();
-__63f08a8ea52e55ae652058922b956fdb
+__b3403a60b68e2751bbcb1e961839877a
 meta::function('bash', <<'__8d23e6ddda25160e11315345a3282b16');
 with_exported('id::' . join("\n", @_), sub {
   system('/bin/bash', $_[0]);
@@ -297,7 +296,7 @@ meta::function('cc', <<'__5c64e1adc128113e1b409e0fbcbe29a2');
 # Stashes a quick one-line continuation. (Used to remind me what I was doing.)
 @_ ? associate('data::current-continuation', join(' ', @_)) : retrieve('data::current-continuation');
 __5c64e1adc128113e1b409e0fbcbe29a2
-meta::function('check', <<'__fc697d5a7d384d3c15ae16fb452e936f');
+meta::function('check', <<'__e47ecc234c8c3b60597d2bfd8bac1616');
 my $prefix = prefix();
 my $ifconfig_output = join "\n", qx/ifconfig -a/;
 
@@ -307,9 +306,12 @@ qx/which wget/  or terminal::info('wget is not in your $PATH; install wget to in
 $ifconfig_output =~ /tap0/        or return terminal::info('tap0 does not exist; run setup-tap0');
 $ifconfig_output =~ /10\.0\.0\.1/ or return terminal::info('tap0 is not configured; run setup-tap0');
 
--e "$prefix/image"       or return terminal::info('no image file; run create-image');
--e "$prefix/initialized" or return terminal::info('image file is not initialized; run an init-image function');
-__fc697d5a7d384d3c15ae16fb452e936f
+-e "$prefix/image" or return terminal::info('no image file; run create-image');
+
+terminal::info('IP address is ' . &{'ip-address'}(),
+               'MAC address is ' . &{'mac-address'}(),
+               'image file at ' . prefix() . '/image');
+__e47ecc234c8c3b60597d2bfd8bac1616
 meta::function('child', <<'__3948f6702c460c73411bb96c979f413e');
 my ($child_name) = @_;
 clone($child_name);
@@ -375,7 +377,7 @@ my $name = pop @_;
 file::write($name, join "\n", retrieve(@_));
 __388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('gentoo-init-image', <<'__22f2e5edb3186a3de93bb251f901453f');
+meta::function('gentoo-init-image', <<'__f25610798069bf31f00a389768c6e3d8');
 my $prefix        = prefix();
 my $root          = &{'root-directory'}();
 my $stage3        = 'ftp://distfiles.gentoo.org/pub/gentoo/releases/x86/current-stage3/stage3-i686-*.tar.bz2';
@@ -384,17 +386,15 @@ my $local_stage3  = "$root/cache-gentoo/stage3-i686-*.tar.bz2";
 my $portage       = 'http://distfiles.gentoo.org/snapshots/portage-latest.tar.bz2';
 my $local_portage = "$root/cache-gentoo/portage-latest.tar.bz2";
 
--e glob $local_stage3 or bash(<<end);
+-e $local_stage3 or bash(<<end);
   mkdir -p $root/cache-gentoo && cd $root/cache-gentoo
   wget "$stage3"
 end
--e glob $local_stage3 or die 'failed to download gentoo stage3';
 
--e glob $local_portage or bash(<<end);
+-e $local_portage or bash(<<end);
   mkdir -p $root/cache-gentoo && cd $root/cache-gentoo
   wget "$portage"
 end
--e glob $local_portage or die 'failed to download gentoo portage';
 
 &{'mount-image'}();
 bash(<<end);
@@ -404,7 +404,7 @@ bash(<<end);
   sudo tar -xvjf $local_portage
 end
 &{'umount-image'}();
-__22f2e5edb3186a3de93bb251f901453f
+__f25610798069bf31f00a389768c6e3d8
 meta::function('grep', <<'__a32de7e18e12734fff127c8cb904cf53');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
@@ -523,7 +523,7 @@ meta::function('perl', <<'__986a274c013b77fe08d29726ce3799fe');
 my $result = eval(join ' ', @_);
 $@ ? terminal::error($@) : $result;
 __986a274c013b77fe08d29726ce3799fe
-meta::function('prefix', 'glob(&{\'root-directory\'}() . \'/\' . name() . \'-\' . identity());');
+meta::function('prefix', '&{\'root-directory\'}() . \'/\' . name() . \'-\' . identity();');
 meta::function('reload', 'execute($_) for grep ! /^bootstrap::/, keys %data;');
 meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
