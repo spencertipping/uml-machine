@@ -2,7 +2,12 @@ I'm not responsible for what happens if you use this.
 
 But if you want to try:
 
-$ ./uml-machine child my-arch-instance
+Step 1. Create a child that has its own setting for where disk images go.
+$ ./uml-machine child ./my-uml-machine
+$ ./my-uml-machine root-directory = /home/myname/images         # (can be other things too)
+
+Step 2. Use that child to create a new Arch Linux instance.
+$ ./my-uml-machine child my-arch-instance
 $ ./my-arch-instance check
 (Follow instructions to make sure the host is ready)
 $ ./my-arch-instance create-image
@@ -12,6 +17,12 @@ $ ./my-arch-instance run
 $ ./my-arch-instance rescue     # bash prompt inside mounted FS
 $ ./my-arch-instance ip-address
 $ ./my-arch-instance prefix     # all files live in here
+
+Step 3. Later on, do a git pull and have everything update.
+$ git pull
+$ for file in *; do
+    ./$file update -n
+  done
 
 Alternatives to Arch are Debian and Gentoo, specified by using debian-init-image
 and gentoo-init-image, respectively.
