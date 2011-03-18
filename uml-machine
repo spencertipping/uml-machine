@@ -418,7 +418,7 @@ my $name = pop @_;
 file::write($name, join "\n", retrieve(@_));
 __388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('gentoo-init-image', <<'__1fd509d78ec21be18e57fd58f1227620');
+meta::function('gentoo-init-image', <<'__d114964996907a8edd13f2e70d9d03a7');
 my $prefix        = prefix();
 my $root          = &{'root-directory'}();
 my $stage3        = 'ftp://gentoo.mirrors.pair.com/releases/x86/current-stage3/stage3-i686-*.tar.bz2';
@@ -438,17 +438,23 @@ end
 end
 
 &{'mount-image'}();
+terminal::info('unpacking stage3');
 bash(<<end);
   cd $prefix/mnt
   sudo tar -xjf $local_stage3
-  cd usr
+end
+
+terminal::info('unpacking portage');
+bash(<<end);
+  cd $prefix/mnt/usr
   sudo tar -xjf $local_portage
-  cat > $prefix/mnt/etc/fstab <<EOF
-/dev/ubd0 / ext2 defaults 0 0
-proc /proc proc defaults 0 0
+  sudo sed 's/^\\s*//' > $prefix/mnt/etc/fstab <<EOF
+    /dev/ubd0 / ext2 defaults 0 0
+    proc /proc proc defaults 0 0
+EOF
 end
 &{'umount-image'}();
-__1fd509d78ec21be18e57fd58f1227620
+__d114964996907a8edd13f2e70d9d03a7
 meta::function('grep', <<'__a32de7e18e12734fff127c8cb904cf53');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
