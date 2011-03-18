@@ -439,6 +439,17 @@ my $name = pop @_;
 associate($name, @_ ? join('', map(file::read($_), @_)) : join('', <STDIN>)); 
 __ac86cbe9c9fb12fc8cef2cc88e80c01e
 meta::function('initial-state', '$transient{initial};');
+meta::function('ip-address', <<'__57dd6a8b614576cc50e7a5456b0ca5b7');
+sub hex_value  {index '0123456789abcdef', lc $_[0]}
+sub byte_value {hex_value(substr($_[0], 0, 1)) * 16 + hex_value(substr($_[0], 1, 1))}
+
+my $digits = identity();
+my $first  = byte_value substr($digits, 0, 2);
+my $second = byte_value substr($digits, 2, 2);
+my $third  = byte_value substr($digits, 4, 2);
+
+"10.$first.$second.$third";
+__57dd6a8b614576cc50e7a5456b0ca5b7
 meta::function('is', <<'__5d4fddb72b0715694b83aa0c925a8d04');
 my ($attribute, @criteria) = @_;
 my ($options, @stuff) = separate_options(@criteria);
@@ -483,6 +494,12 @@ my @flags       = map {my $k = $_; join '', map($flag_hashes{$_}{$k} ? $_ : '-',
 join "\n", map strip($_), split /\n/, table_display($all ? [@definitions] : [grep length, @externals], $dereference ? ([@externals]) : (),
                                                     $sizes ? ([@sizes]) : (), $flags ? ([@flags]) : ());
 __acdc3ca5777ab9c7c430d493a7555998
+meta::function('mac-address', <<'__482ab782f4c09d8d4cd00a8dcae1c534');
+# Creates a MAC address from the identity
+my $digits = substr identity(), 0, 12;
+$digits =~ s/(..)/:\1/g;
+substr $digits, 1;
+__482ab782f4c09d8d4cd00a8dcae1c534
 meta::function('mount-image', <<'__f8c97f1b49f20c2d65ecb433c9a222ac');
 my $prefix = prefix;
 my $username = qx/whoami/;
@@ -513,6 +530,14 @@ meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
+meta::function('run', <<'__87ae319cd76a61b843e118d3736d92af');
+my $prefix      = prefix;
+my $memory      = memory();
+my $ip_address  = &{'ip-address'}();
+my $mac_address = &{'mac-address'}();
+
+system("linux mem=$memory eth0=tuntap,tap0,$mac_address,$ip_address ubd0=$prefix/image");
+__87ae319cd76a61b843e118d3736d92af
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
