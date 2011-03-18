@@ -370,7 +370,7 @@ my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
 join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
-meta::function('debian-init-image', <<'__e37820054fee9b3af66e92f446407826');
+meta::function('debian-init-image', <<'__417c08254fee9b3af66e92f446407826');
 my $prefix  = prefix();
 my $droot   = &{'root-directory'}() . '/cache-debian';
 my $version = 'squeeze';
@@ -401,13 +401,13 @@ bash(<<end);
       netmask 255.0.0.0
       network 10.0.0.0
       gateway 10.0.0.1
-  sudo chroot $prefix/mnt passwd root
 EOF
+  sudo chroot $prefix/mnt passwd root
 end
 
 &{'postinstall-networking'}();
 &{'umount-image'}();
-__e37820054fee9b3af66e92f446407826
+__417c08254fee9b3af66e92f446407826
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
 meta::function('edit', <<'__d4a523db46b488b20f444e07d28fea33');
 my ($name, %options) = @_;
