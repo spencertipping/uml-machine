@@ -418,7 +418,7 @@ my $name = pop @_;
 file::write($name, join "\n", retrieve(@_));
 __388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('gentoo-init-image', <<'__4e549398e5fce2d25d19a7f0ace1ccd0');
+meta::function('gentoo-init-image', <<'__1fd509d78ec21be18e57fd58f1227620');
 my $prefix        = prefix();
 my $root          = &{'root-directory'}();
 my $stage3        = 'ftp://gentoo.mirrors.pair.com/releases/x86/current-stage3/stage3-i686-*.tar.bz2';
@@ -427,14 +427,14 @@ my $local_stage3  = "$root/cache-gentoo/stage3-i686-*.tar.bz2";
 my $portage       = 'http://distfiles.gentoo.org/snapshots/portage-latest.tar.bz2';
 my $local_portage = "$root/cache-gentoo/portage-latest.tar.bz2";
 
--e $local_stage3 or bash(<<end);
+<$local_stage3> or bash(<<end);
   mkdir -p $root/cache-gentoo && cd $root/cache-gentoo
-  wget "$stage3"
+  wget -c "$stage3"
 end
 
--e $local_portage or bash(<<end);
+<$local_portage> or bash(<<end);
   mkdir -p $root/cache-gentoo && cd $root/cache-gentoo
-  wget "$portage"
+  wget -c "$portage"
 end
 
 &{'mount-image'}();
@@ -448,7 +448,7 @@ bash(<<end);
 proc /proc proc defaults 0 0
 end
 &{'umount-image'}();
-__4e549398e5fce2d25d19a7f0ace1ccd0
+__1fd509d78ec21be18e57fd58f1227620
 meta::function('grep', <<'__a32de7e18e12734fff127c8cb904cf53');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
