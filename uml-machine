@@ -588,10 +588,12 @@ meta::function('perl', <<'__986a274c013b77fe08d29726ce3799fe');
 my $result = eval(join ' ', @_);
 $@ ? terminal::error($@) : $result;
 __986a274c013b77fe08d29726ce3799fe
-meta::function('postinstall-networking', <<'__dc4f50c9defd7098125b96d1d25d576f');
+meta::function('postinstall-networking', <<'__ea63467c7c77b8e4cff83d73a6b5f5d3');
+my $name = name();
 my $prefix = prefix();
 my $ip_address = &{'ip-address'}();
 
+bash("echo $name | sudo tee $prefix/mnt/etc/hostname");
 bash("sudo cp /etc/resolv.conf $prefix/mnt/etc/");
 bash(<<end);
   sed 's/^\\s*//' <<EOF | sudo tee $prefix/mnt/sbin/netup
@@ -601,7 +603,7 @@ bash(<<end);
 EOF
   sudo chmod a+x $prefix/mnt/sbin/netup
 end
-__dc4f50c9defd7098125b96d1d25d576f
+__ea63467c7c77b8e4cff83d73a6b5f5d3
 meta::function('prefix', '&{\'root-directory\'}() . \'/\' . name() . \'-\' . identity();');
 meta::function('reload', 'execute($_) for grep ! /^bootstrap::/, keys %data;');
 meta::function('rescue', <<'__c852eae080f37daac2758e0c528b8ba9');
