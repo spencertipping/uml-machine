@@ -361,7 +361,7 @@ my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
 join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
-meta::function('debian-init-image', <<'__3245321b31458515f7f1b962fa2d252c');
+meta::function('debian-init-image', <<'__0f2d3c38c9f6db673079b1815d48fb3e');
 my $prefix  = prefix();
 my $droot   = &{'root-directory'}() . '/cache-debian';
 my $version = 'squeeze';
@@ -383,7 +383,7 @@ bash(<<end);
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $prefix/mnt/etc/fstab
   sudo cp /etc/apt/sources.list $prefix/mnt/etc/apt/
   echo $name | sudo tee $prefix/mnt/etc/hostname
-  sudo sed 's/^\\s*//' > $prefix/mnt/etc/network/interfaces <<EOF
+  sed 's/^\\s*//' <<EOF | sudo tee $prefix/mnt/etc/network/interfaces
     auto lo
     iface lo inet loopback
     auto eth0
@@ -395,7 +395,7 @@ bash(<<end);
 EOF
 end
 &{'umount-image'}();
-__3245321b31458515f7f1b962fa2d252c
+__0f2d3c38c9f6db673079b1815d48fb3e
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
 meta::function('edit', <<'__d4a523db46b488b20f444e07d28fea33');
 my ($name, %options) = @_;
@@ -418,7 +418,7 @@ my $name = pop @_;
 file::write($name, join "\n", retrieve(@_));
 __388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('gentoo-init-image', <<'__d114964996907a8edd13f2e70d9d03a7');
+meta::function('gentoo-init-image', <<'__78aab451ad5a0e9a27280f684b315ef3');
 my $prefix        = prefix();
 my $root          = &{'root-directory'}();
 my $stage3        = 'ftp://gentoo.mirrors.pair.com/releases/x86/current-stage3/stage3-i686-*.tar.bz2';
@@ -448,13 +448,13 @@ terminal::info('unpacking portage');
 bash(<<end);
   cd $prefix/mnt/usr
   sudo tar -xjf $local_portage
-  sudo sed 's/^\\s*//' > $prefix/mnt/etc/fstab <<EOF
+  sed 's/^\\s*//' <<EOF | sudo tee $prefix/mnt/etc/fstab
     /dev/ubd0 / ext2 defaults 0 0
     proc /proc proc defaults 0 0
 EOF
 end
 &{'umount-image'}();
-__d114964996907a8edd13f2e70d9d03a7
+__78aab451ad5a0e9a27280f684b315ef3
 meta::function('grep', <<'__a32de7e18e12734fff127c8cb904cf53');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
@@ -579,16 +579,15 @@ meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
-meta::function('run', <<'__ef47896eb8c58aeccb538574cc57cf76');
+meta::function('run', <<'__f79d064d894f604a5928527eea779c1a');
 my $prefix      = prefix();
 my $memory      = memory();
 my $name        = name();
 my $ip_address  = &{'ip-address'}();
 my $mac_address = &{'mac-address'}();
 
-system("x-terminal-emulator -x 'uml_mconsole $name' &");
-system("linux umid=$name mem=$memory eth0=tuntap,tap0,$mac_address,$ip_address ubd0=$prefix/image xterm=terminator,-T,-x");
-__ef47896eb8c58aeccb538574cc57cf76
+system("linux umid=$name mem=$memory eth0=tuntap,,$mac_address,$ip_address ubd0=$prefix/image xterm=terminator,-T,-x");
+__f79d064d894f604a5928527eea779c1a
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
