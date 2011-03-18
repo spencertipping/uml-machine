@@ -257,7 +257,7 @@ meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
 __82708b00ecb7499701a9f4c6c5fe9839
-meta::function('arch-init-image', <<'__c45cdddabb4c643233a41908decc4479');
+meta::function('arch-init-image', <<'__3c2a584a6f9b62bcf24281143f1b3f04');
 my $prefix = prefix();
 my $aroot  = &{'root-directory'}() . '/cache-arch';
 my $ensure = sub {
@@ -281,19 +281,19 @@ my $pacman_mirrorlist = file::read("$aroot/etc/pacman.d/mirrorlist");
 $pacman_mirrorlist =~ s/^#(.*ftp\.archlinux\.org)/\1/mg;
 file::write("$aroot/etc/pacman.d/mirrorlist", $pacman_mirrorlist);
 
-my $pacman_opts   = "--config $aroot/etc/pacman.conf -b $aroot/var/lib/pacman --cachedir $aroot/var/cache/pacman/pkg --logfile $aroot/var/log/pacman.log";
+my $identity      = identity();
+my $pacman_opts   = "--config $aroot/etc/pacman.conf -b $aroot/var/lib/pacman-$identity --cachedir $aroot/var/cache/pacman/pkg --logfile $aroot/var/log/pacman.log";
 my $pacman_prefix = "sudo LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/lib:/usr/lib:$aroot/lib:$aroot/usr/lib";
 
 &{'mount-image'}();
 bash(<<end);
   cd $aroot/usr/bin
-  sudo rm -rf $aroot/var/lib/pacman/*
   $pacman_prefix ./pacman -Sy $pacman_opts
   $pacman_prefix ./pacman -S base -r $prefix/mnt $pacman_opts
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $aroot/etc/fstab
 end
 &{'umount-image'}();
-__c45cdddabb4c643233a41908decc4479
+__3c2a584a6f9b62bcf24281143f1b3f04
 meta::function('bash', <<'__8d23e6ddda25160e11315345a3282b16');
 with_exported('id::' . join("\n", @_), sub {
   system('/bin/bash', $_[0]);
