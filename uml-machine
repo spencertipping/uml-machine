@@ -257,7 +257,7 @@ meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
 __82708b00ecb7499701a9f4c6c5fe9839
-meta::function('arch-init-image', <<'__889e912872d9b3a9594d5aedfbcac649');
+meta::function('arch-init-image', <<'__e0ca0b35249a5e682fee329efa94f527');
 my $prefix = prefix();
 my $aroot  = &{'root-directory'}() . '/cache-arch';
 my $ensure = sub {
@@ -293,12 +293,12 @@ bash(<<end);
   $pacman_prefix ./pacman -S base -r $prefix/mnt $pacman_opts
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $aroot/etc/fstab
   sudo rm -rf $prefix/mnt/var/lib/pacman
-  sudo mv -r $aroot/var/lib/pacman-$identity $prefix/mnt/var/lib/pacman
+  sudo mv $aroot/var/lib/pacman-$identity $prefix/mnt/var/lib/pacman
 end
 
 &{'postinstall-networking'}();
 &{'umount-image'}();
-__889e912872d9b3a9594d5aedfbcac649
+__e0ca0b35249a5e682fee329efa94f527
 meta::function('bash', <<'__8d23e6ddda25160e11315345a3282b16');
 with_exported('id::' . join("\n", @_), sub {
   system('/bin/bash', $_[0]);
