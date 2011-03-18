@@ -361,6 +361,41 @@ my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
 join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
+meta::function('debian-init-image', <<'__713d7ba8d277bbb09640f79919196977');
+my $prefix  = prefix();
+my $droot   = &{'root-directory'}() . '/cache-debian';
+my $version = 'squeeze';
+
+bash("mkdir -p $droot");
+-e "$droot/basedebs.tar" or bash(<<end);
+  cd $droot
+  wget --passive-ftp ftp://ftp.debian.org/debian/dists/squeeeze/main/disks-i386/base-images-current/basedebs.tar
+end
+
+my $ip_address = &{'ip-address'}();
+my $name       = name();
+
+&{'mount-image'}();
+bash(<<end);
+  cd $prefix
+  sudo debootstrap --unpack-tarball $droot/basedebs.tar $version $prefix/mnt
+  echo proc /proc proc defaults 0 0  | sudo tee -a $prefix/mnt/etc/fstab
+  echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $prefix/mnt/etc/fstab
+  sudo cp /etc/apt/sources.list $prefix/mnt/etc/apt/
+  echo $name | sudo tee $prefix/mnt/etc/hostname
+  sudo sed 's/^\\s*//' <<EOF | tee -a $prefix/mnt/etc/network/interfaces
+    auto lo
+    iface lo inet loopback
+    auto eth0
+    iface eth0 inet static
+      address $ip_address
+      netmask 255.0.0.0
+      network 10.0.0.0
+      gateway 10.0.0.1
+EOF
+end
+&{'umount-image'}();
+__713d7ba8d277bbb09640f79919196977
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
 meta::function('edit', <<'__d4a523db46b488b20f444e07d28fea33');
 my ($name, %options) = @_;
