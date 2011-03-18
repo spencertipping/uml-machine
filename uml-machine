@@ -257,7 +257,7 @@ meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
 __82708b00ecb7499701a9f4c6c5fe9839
-meta::function('arch-init-image', <<'__0586e4343fcc6410b0ec9e58833db3b2');
+meta::function('arch-init-image', <<'__889e912872d9b3a9594d5aedfbcac649');
 my $prefix = prefix();
 my $aroot  = &{'root-directory'}() . '/cache-arch';
 my $ensure = sub {
@@ -292,9 +292,13 @@ bash(<<end);
   $pacman_prefix ./pacman -Sy $pacman_opts
   $pacman_prefix ./pacman -S base -r $prefix/mnt $pacman_opts
   echo /dev/ubd0 / ext2 defaults 0 0 | sudo tee -a $aroot/etc/fstab
+  sudo rm -rf $prefix/mnt/var/lib/pacman
+  sudo mv -r $aroot/var/lib/pacman-$identity $prefix/mnt/var/lib/pacman
 end
+
+&{'postinstall-networking'}();
 &{'umount-image'}();
-__0586e4343fcc6410b0ec9e58833db3b2
+__889e912872d9b3a9594d5aedfbcac649
 meta::function('bash', <<'__8d23e6ddda25160e11315345a3282b16');
 with_exported('id::' . join("\n", @_), sub {
   system('/bin/bash', $_[0]);
@@ -305,11 +309,12 @@ meta::function('cc', <<'__5c64e1adc128113e1b409e0fbcbe29a2');
 # Stashes a quick one-line continuation. (Used to remind me what I was doing.)
 @_ ? associate('data::current-continuation', join(' ', @_)) : retrieve('data::current-continuation');
 __5c64e1adc128113e1b409e0fbcbe29a2
-meta::function('check', <<'__4e69d775ea41c8873034e736d9426d60');
+meta::function('check', <<'__0e9a28608f0c4e4d7003dce97dc6c24b');
 my $prefix = prefix();
 my $ifconfig_output = join "\n", qx/ifconfig -a/;
 
 qx/id/ =~ /uml-net/ or return terminal::info('you need to be a member of the uml-net group');
+file::read('/proc/sys/net/ipv4/ip_forward') or return terminal::info('you need to enable IPv4 forwarding: echo 1 > /proc/sys/net/ipv4/ip_forward');
 
 qx/which linux/ or return terminal::info('UML is not in your $PATH; install user-mode linux');
 qx/which wget/  or terminal::info('wget is not in your $PATH; install wget to initialize images');
@@ -322,7 +327,7 @@ $ifconfig_output =~ /10\.0\.0\.1/ or return terminal::info('tap0 is not configur
 terminal::info('IP address is ' . &{'ip-address'}(),
                'MAC address is ' . &{'mac-address'}(),
                'image file at ' . prefix() . '/image');
-__4e69d775ea41c8873034e736d9426d60
+__0e9a28608f0c4e4d7003dce97dc6c24b
 meta::function('child', <<'__3948f6702c460c73411bb96c979f413e');
 my ($child_name) = @_;
 clone($child_name);
@@ -365,7 +370,7 @@ my @valid_keys   = grep ! /^state::/, sort keys %data;
 my @ordered_keys = (grep(/^meta::/, @valid_keys), grep(! /^meta::/, @valid_keys));
 join "\n", map serialize_single($_), @ordered_keys;
 __d83ae43551c0f58d1d0ce576402a315a
-meta::function('debian-init-image', <<'__0f2d3c38c9f6db673079b1815d48fb3e');
+meta::function('debian-init-image', <<'__e37820054fee9b3af66e92f446407826');
 my $prefix  = prefix();
 my $droot   = &{'root-directory'}() . '/cache-debian';
 my $version = 'squeeze';
@@ -396,10 +401,13 @@ bash(<<end);
       netmask 255.0.0.0
       network 10.0.0.0
       gateway 10.0.0.1
+  sudo chroot $prefix/mnt passwd root
 EOF
 end
+
+&{'postinstall-networking'}();
 &{'umount-image'}();
-__0f2d3c38c9f6db673079b1815d48fb3e
+__e37820054fee9b3af66e92f446407826
 meta::function('disable', 'chmod_self(sub {$_[0] & 0666});');
 meta::function('edit', <<'__d4a523db46b488b20f444e07d28fea33');
 my ($name, %options) = @_;
@@ -422,7 +430,7 @@ my $name = pop @_;
 file::write($name, join "\n", retrieve(@_));
 __388e0cc60507443cb1c0cc3e2658cfef
 meta::function('extern', '&{$_[0]}(retrieve(@_[1 .. $#_]));');
-meta::function('gentoo-init-image', <<'__78aab451ad5a0e9a27280f684b315ef3');
+meta::function('gentoo-init-image', <<'__9477c29bf8fe9684aa42008c449d6ff1');
 my $prefix        = prefix();
 my $root          = &{'root-directory'}();
 my $stage3        = 'ftp://gentoo.mirrors.pair.com/releases/x86/current-stage3/stage3-i686-*.tar.bz2';
@@ -457,8 +465,10 @@ bash(<<end);
     proc /proc proc defaults 0 0
 EOF
 end
+
+&{'postinstall-networking'}();
 &{'umount-image'}();
-__78aab451ad5a0e9a27280f684b315ef3
+__9477c29bf8fe9684aa42008c449d6ff1
 meta::function('grep', <<'__a32de7e18e12734fff127c8cb904cf53');
 # Looks through attributes for a pattern. Usage is grep pattern [options], where
 # [options] is the format as provided to select_keys.
@@ -577,20 +587,35 @@ meta::function('perl', <<'__986a274c013b77fe08d29726ce3799fe');
 my $result = eval(join ' ', @_);
 $@ ? terminal::error($@) : $result;
 __986a274c013b77fe08d29726ce3799fe
+meta::function('postinstall-networking', <<'__dc4f50c9defd7098125b96d1d25d576f');
+my $prefix = prefix();
+my $ip_address = &{'ip-address'}();
+
+bash("sudo cp /etc/resolv.conf $prefix/mnt/etc/");
+bash(<<end);
+  sed 's/^\\s*//' <<EOF | sudo tee $prefix/mnt/sbin/netup
+    #!/bin/bash
+    ifconfig eth0 $ip_address up
+    route add default gw 10.0.0.1
+EOF
+  sudo chmod a+x $prefix/mnt/sbin/netup
+end
+__dc4f50c9defd7098125b96d1d25d576f
 meta::function('prefix', '&{\'root-directory\'}() . \'/\' . name() . \'-\' . identity();');
 meta::function('reload', 'execute($_) for grep ! /^bootstrap::/, keys %data;');
 meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
-meta::function('run', <<'__6f7705980523de4c0e6273765eec9e4c');
+meta::function('run', <<'__fd910c3afe075654c0dc43be5996cf87');
 my $prefix      = prefix();
 my $memory      = memory();
 my $name        = name();
 my $ip_address  = &{'ip-address'}();
 my $mac_address = &{'mac-address'}();
 
-my $network_options = "eth0=ethertap,tap0,$ip_address,10.0.0.1";
+my $network_options = "eth0=tuntap,tap0";
+#my $network_options = 'eth0=mcast';
 
 my @silent_consoles = map "con$_", 2 .. 16;
 my @active_consoles = 'con1';
@@ -599,7 +624,7 @@ my $console_options = join ' ', map("$_=pts", @silent_consoles),
                                 map("$_=xterm", @active_consoles);
 
 system("linux $console_options umid=$name mem=$memory $network_options ubd0=$prefix/image xterm=terminator,-T,-x");
-__6f7705980523de4c0e6273765eec9e4c
+__fd910c3afe075654c0dc43be5996cf87
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
