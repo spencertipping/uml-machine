@@ -3,6 +3,8 @@ I'm not responsible for what happens if you use this.
 But if you want to anyway:
 
 Step 1. Create a child that has its own setting for where disk images go.
+        (my version defaults to /home/spencertipping/images)
+
 $ ./uml-machine child ./my-uml-machine
 $ ./my-uml-machine root-directory = /home/myname/images         # (can be other things too)
 
@@ -10,34 +12,52 @@ From now on you'll use this child. The nice thing is that the Perl scripts
 know not to overwrite the root-directory even when you're doing upgrades.
 
 Step 2. Use that child to create a new Arch Linux instance.
+
 $ ./my-uml-machine child my-arch-instance
-$ ./my-arch-instance check
-(Follow instructions to make sure the host is ready)
-$ ./my-arch-instance create-image       # takes an optional number of GB
+$ ./my-arch-instance check              # important! tells you what to do next
+$ ./my-arch-instance create-image       # takes an optional number of GB, defaults to 2
 $ ./my-arch-instance arch-init-image
 $ ./my-arch-instance run
 
 At this point your system is booted. You can change the amount of memory
-(defaults to 128M):
+(defaults to 128M) and the terminal emulator (defaults to terminator):
 
+$ ./my-arch-instance memory
+128M
 $ ./my-arch-instance memory = 512M
+$ ./my-arch-instance xterm
+terminator,-T,-x
+$ ./my-arch-instance xterm = 'gnome-terminal,-t,-x'
 
 The script also knows how to do some other tasks:
 
 $ ./my-arch-instance rescue     # bash prompt inside mounted FS
 $ ./my-arch-instance ip-address
 $ ./my-arch-instance prefix     # all files live in here
-$ ./my-arch-insatnce nuke-image # nuke the disk image and accompanying files
+$ ./my-arch-instance nuke-image # nuke the disk image and accompanying files
+
+Note that you can't run an instance more than once, or do anything squirrelly
+like that. The reason is that the Perl script disables its execute bit while
+it's busy.
 
 Step 3. Later on, do a git pull and have everything update.
+
 $ git pull
 $ for file in *; do
     ./$file update -n
   done
 
+You can also have your machines update even if you've moved them into a different
+directory. Just run ./my-machine update-from /path/to/uml-machine -n, and it will
+remember the path to uml-machine so that ./my-machine update -n works in the
+future.
+
 Alternatives to Arch are Debian and Gentoo, specified by using debian-init-image
 and gentoo-init-image, respectively. Each distribution caches most of its
-downloads, so the first install takes much longer than subsequent ones.
+downloads, so the first install takes much longer than subsequent ones. Gentoo is
+a disk hog, so it needs a bigger image; I use this:
+
+$ ./my-gentoo-instance create-image 4   # 4GB instead of 2GB
 
 Once your instance is running, a command called /sbin/netup should get networking
 going between the host and other UML instances. It also initializes the routing

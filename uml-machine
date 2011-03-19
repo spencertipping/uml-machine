@@ -253,6 +253,7 @@ meta::data('memory', '128M');
 meta::data('permanent-identity', '83ab4e1c105b2b79ea4d0b7b6ff0d2f1');
 meta::data('root-directory', '/home/spencertipping/images');
 meta::data('watching', '1');
+meta::data('xterm', 'terminator,-T,-x');
 meta::function('alias', <<'__82708b00ecb7499701a9f4c6c5fe9839');
 my ($name, @stuff) = @_;
 @stuff ? associate("alias::$name", join ' ', @stuff) : retrieve("alias::$name") || "Undefined alias $name";
@@ -621,10 +622,11 @@ meta::function('rm', <<'__26d4a78ddb47259b3d8dcabe390426bd');
 exists $data{$_} or terminal::warning("$_ does not exist") for @_;
 delete @data{@_};
 __26d4a78ddb47259b3d8dcabe390426bd
-meta::function('run', <<'__2b4ad6831912d6c308568c3893135ce6');
+meta::function('run', <<'__61bc1f3d28ad8dd324c7814b3d578cf6');
 my $prefix      = prefix();
 my $memory      = memory();
 my $name        = name();
+my $xterm       = xterm();
 my $ip_address  = &{'ip-address'}();
 my $mac_address = &{'mac-address'}();
 
@@ -636,8 +638,8 @@ my @active_consoles = 'con1';
 my $console_options = join ' ', map("$_=pts", @silent_consoles),
                                 map("$_=xterm", @active_consoles);
 
-system("linux $console_options umid=$name mem=$memory $network_options ubd0=$prefix/image xterm=terminator,-T,-x");
-__2b4ad6831912d6c308568c3893135ce6
+system("linux $console_options umid=$name mem=$memory $network_options ubd0=$prefix/image xterm=$xterm");
+__61bc1f3d28ad8dd324c7814b3d578cf6
 meta::function('save', 'dangerous(\'\', sub {file::write($0, serialize()); $transient{initial} = state()}) if verify();');
 meta::function('save-state', <<'__5c5b586331e25951140ced6442d9fe2b');
 # Creates a named copy of the current state and stores it.
