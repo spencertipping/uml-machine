@@ -1,18 +1,28 @@
 I'm not responsible for what happens if you use this.
 
-But if you want to try:
+But if you want to anyway:
 
 Step 1. Create a child that has its own setting for where disk images go.
 $ ./uml-machine child ./my-uml-machine
 $ ./my-uml-machine root-directory = /home/myname/images         # (can be other things too)
 
+From now on you'll use this child. The nice thing is that the Perl scripts
+know not to overwrite the root-directory even when you're doing upgrades.
+
 Step 2. Use that child to create a new Arch Linux instance.
 $ ./my-uml-machine child my-arch-instance
 $ ./my-arch-instance check
 (Follow instructions to make sure the host is ready)
-$ ./my-arch-instance create-image
+$ ./my-arch-instance create-image       # takes an optional number of GB
 $ ./my-arch-instance arch-init-image
 $ ./my-arch-instance run
+
+At this point your system is booted. You can change the amount of memory
+(defaults to 128M):
+
+$ ./my-arch-instance memory = 512M
+
+The script also knows how to do some other tasks:
 
 $ ./my-arch-instance rescue     # bash prompt inside mounted FS
 $ ./my-arch-instance ip-address
@@ -26,7 +36,8 @@ $ for file in *; do
   done
 
 Alternatives to Arch are Debian and Gentoo, specified by using debian-init-image
-and gentoo-init-image, respectively.
+and gentoo-init-image, respectively. Each distribution caches most of its
+downloads, so the first install takes much longer than subsequent ones.
 
 Once your instance is running, a command called /sbin/netup should get networking
 going between the host and other UML instances. It also initializes the routing
