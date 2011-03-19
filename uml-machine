@@ -583,6 +583,11 @@ my $name = $0;
 $name =~ s/^.*\///;
 $name;
 __6848cbc257e4b6d7441b25acb04e23c9
+meta::function('nuke-image', <<'__c0b86ad9470ad418f2516baf5a18d393');
+my $prefix = prefix();
+terminal::warning('This will destroy your disk image! Type "really nuke" and hit enter to do it.');
+&{'umount-image'}(), terminal::info('nuking image'), bash("rm -rf $prefix") if <STDIN> eq "really nuke\n";
+__c0b86ad9470ad418f2516baf5a18d393
 meta::function('parents', 'join "\\n", grep s/^parent:://o, sort keys %data;');
 meta::function('perl', <<'__986a274c013b77fe08d29726ce3799fe');
 my $result = eval(join ' ', @_);
