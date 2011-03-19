@@ -17,6 +17,7 @@ $ ./my-arch-instance run
 $ ./my-arch-instance rescue     # bash prompt inside mounted FS
 $ ./my-arch-instance ip-address
 $ ./my-arch-instance prefix     # all files live in here
+$ ./my-arch-insatnce nuke-image # nuke the disk image and accompanying files
 
 Step 3. Later on, do a git pull and have everything update.
 $ git pull
@@ -30,3 +31,8 @@ and gentoo-init-image, respectively.
 Once your instance is running, a command called /sbin/netup should get networking
 going between the host and other UML instances. It also initializes the routing
 table so that your instance can connect to the Internet.
+
+Right now only one instance can have Internet connectivity at a time. This is
+because I'm using tun/tap to interface to the host, and each tap interface requires
+root privileges to configure (so I'm using only one tap interface). I would like to
+fix this, however, ideally with a virtual network and a bridge.
