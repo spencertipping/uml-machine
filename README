@@ -20,7 +20,7 @@ $ ./my-arch-instance arch-init-image
 $ ./my-arch-instance run
 
 At this point your system is booted. You can change the amount of memory
-(defaults to 128M) and the terminal emulator (defaults to terminator):
+(defaults to 128M) and the terminal emulator (defaults to 'terminal'):
 
 $ ./my-arch-instance memory
 128M

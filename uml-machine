@@ -290,7 +290,7 @@ meta::data('memory', '128M');
 meta::data('permanent-identity', '83ab4e1c105b2b79ea4d0b7b6ff0d2f1');
 meta::data('root-directory', '/home/spencertipping/images');
 meta::data('watching', '1');
-meta::data('xterm', 'terminator,-T,-x');
+meta::data('xterm', 'terminal,-T,-x');
 meta::function('alias', <<'__');
 my ($name, @stuff) = @_;
 return ls('-a', '^alias::') unless defined $name;
